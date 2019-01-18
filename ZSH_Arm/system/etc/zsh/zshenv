@@ -12,5 +12,9 @@
 #
 # Global Order: zshenv, zprofile, zshrc, zlogin
 
-export HOME="/data/local/home"
-path+=(/data/local/bin); export PATH
+if [[ -z "$PATH"  || "$PATH" != *xbin* ]]
+then
+	export PATH="/system/xbin:${PATH}"
+fi
+export TERMINFO=/system/usr/share/terminfo
+

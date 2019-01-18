@@ -10,7 +10,7 @@
 
 emulate -RL zsh
 
-local HELPDIR=${HELPDIR:-/usr/share/zsh/help}
+local HELPDIR="${HELPDIR:-}"
 
 [[ $1 == "." ]] && 1="dot"
 [[ $1 == ":" ]] && 1="colon"
@@ -29,7 +29,7 @@ then
     return 0
 elif [[ -n "${HELPDIR:-}" && -r $HELPDIR/$1 && $1 != compctl ]]
 then
-    ${=PAGER:-/usr/bin/pager} $HELPDIR/$1
+    ${=PAGER:-more} $HELPDIR/$1
     return $?
 fi
 
@@ -69,7 +69,7 @@ do
 	(comp*) man zshcompsys;;
 	(zf*) man zshftpsys;;
 	(run-help) man zshcontrib;;
-	(*) builtin functions ${what[(w)1]} | ${=PAGER:-/usr/bin/pager};;
+	(*) builtin functions ${what[(w)1]} | ${=PAGER:-more};;
 	esac;;
     (*( is a * builtin))
 	case ${what[(w)1]} in
