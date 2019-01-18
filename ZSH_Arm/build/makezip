@@ -1,0 +1,23 @@
+#!/bin/zsh
+# vim: set ft=zsh:
+
+
+usage() {
+   echo "Usage: $me [-o <zipfile>] <files>..."
+   echo "Zipfile defaults to ./<dirname>-<date>.zip"
+   exit 4
+}
+
+main() {
+   setopt extendedglob
+   zparseopts -D -A FLAGS -- h v vv o:
+   (( ${+FLAGS[-v]} )) && set -x;
+   (( ${+FLAGS[-h]} )) && usage
+   local date='%D{%m-%d}'
+   local zf;
+   (( ${+FLAGS[-o]} )) && zf=${FLAGS[-o]} || zf="${PWD:A:t}-${(%)date}.zip"
+   [ -z "$1" ] && 1=./*~*.zip~build
+   zip -r $zf ${~1}
+}
+
+main "$@";

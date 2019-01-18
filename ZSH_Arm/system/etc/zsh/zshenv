@@ -12,9 +12,37 @@
 #
 # Global Order: zshenv, zprofile, zshrc, zlogin
 
-if [[ -z "$PATH"  || "$PATH" != *xbin* ]]
-then
-	export PATH="/system/xbin:${PATH}"
-fi
-export TERMINFO=/system/usr/share/terminfo
+[[ -n "$DEBUG" ]] && set -vx
+# First, Setup homedir 
+USER=$(id | awk '{print $1}' | grep -Eo '\([a-z]*')
+export USER=${USER[2,99]}
 
+if [[ "$USER" == "root" ]]; then
+   export HOME=/data/local/root
+else
+   export HOME=/data/local/${USER}
+   local SU=(su -c)
+fi
+local MKH=(mkdir $HOME; chown $USER:$USER $HOME)
+[[ -n "${SU[*]}" ]] && ${SU[@]} "${MKH[*]}" \
+   || ${MKH[@]}
+
+# Then, reset the environment
+local opts=()
+[[ -o interactive ]] && opts+=(-i)
+[[ -o login ]] && opts+=(-l)
+[[ -z "$ENVC" ]] && exec env -i ENVC=1 USER=$USER HOSTNAME=$HOSTNAME DEBUG=$DEBUG zsh ${opts[@]}
+
+# Finally, the rest
+export LC_ALL="C"
+export LANGUAGE="C"
+export LOGNAME=$USER
+export PATH="/system/xbin:/system/bin:/sbin:/vendor/bin:/bin"
+export SHELL=zsh
+export HISTFILE=${HOME}/.zsh_history
+export TERMINFO=/system/usr/share/terminfo
+export TERM=xterm-256color
+export TMPPREFIX=${HOME}/tmp
+mkdir -p $TMPPREFIX
+
+[[ -n "$DEBUG" ]] && set +vx
