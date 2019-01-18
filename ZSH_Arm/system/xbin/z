@@ -1,0 +1,10 @@
+#!/system/bin/sh
+ 
+
+export TERMINFO=/data/local/etc/terminfo
+
+export HOME=/data/local
+export PATH="/data/local/bin:$PATH"
+#export ZDOTDIR=$HOME
+
+zsh -i

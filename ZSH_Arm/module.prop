@@ -1,0 +1,7 @@
+id=zshstatic
+name=ZSH Static
+version=0.1
+versionCode=001
+author=partcyborg
+description=Zsh is an advanced linux/unix shell, similar to bash but with many more advanced features.
+minMagisk=1700
