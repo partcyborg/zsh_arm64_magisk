@@ -1,7 +1,7 @@
 id=zshstatic
 name=ZSH for Arm
-version=0.6
-versionCode=006
+version=0.7
+versionCode=07
 author=me@partcyb.org
 description=Zsh is a modern *nix shell with many advanced features.
 minMagisk=1700
