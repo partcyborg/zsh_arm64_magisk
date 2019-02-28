@@ -17,22 +17,21 @@
 USER=$(id | awk '{print $1}' | grep -Eo '\([a-z]*')
 export USER=${USER[2,99]}
 
-if [[ "$USER" == "root" ]]; then
-   export HOME=/data/local/root
-else
-   export HOME=/data/local/${USER}
-   local SU=(su -c)
-fi
-local MKH=(mkdir $HOME; chown $USER:$USER $HOME)
-[[ -n "${SU[*]}" ]] && ${SU[@]} "${MKH[*]}" \
-   || ${MKH[@]}
+[[ "$USER" == "root" ]] || local SU=(su -c)
 
+export HOME=/data/local/${USER}
+if [[ ! -d "${HOME}" ]]; then
+   local MKH=(mkdir ${HOME}; chown ${USER}:${USER} ${HOME})
+   [[ -n "$SU" ]] && ${SU[@]} "${MKH[*]}" &>/dev/null \
+      || ${MKH[@]} &> /dev/null
+fi
 # Then, reset the environment
 local opts=()
 [[ -o interactive ]] && opts+=(-i)
 [[ -o login ]] && opts+=(-l)
 [[ -z "$ENVC" ]] && exec env -i ENVC=1 USER=$USER HOSTNAME=$HOSTNAME DEBUG=$DEBUG zsh ${opts[@]}
 
+unset ENVC
 # Finally, the rest
 export LC_ALL="C"
 export LANGUAGE="C"
@@ -43,6 +42,6 @@ export HISTFILE=${HOME}/.zsh_history
 export TERMINFO=/system/usr/share/terminfo
 export TERM=xterm-256color
 export TMPPREFIX=${HOME}/tmp
-mkdir -p $TMPPREFIX
+mkdir -p $TMPPREFIX &>/dev/null
 
-[[ -n "$DEBUG" ]] && set +vx
+set +vx
