@@ -1,38 +1,37 @@
-MODVERSION := 0.7
-MOD := ZSH_Arm
-ZIP := ${MOD}-${VERSION}-$(shell date +%m-%d).zip
+MODVERSION := 0.8
+MOD := zsh_arm64
+ZIP := $(MOD)-$(MODVERSION).zip
+#ZIP := $(MOD)-$(MODVERSION)-$(shell date +%m-%d).zip
 
 VCODE := $(subst .,,$(MODVERSION))
-DEPS := $(shell find ${MOD} -type f)
+DEPS := $(shell find $(MOD) -type f)
 
-ZSHVERSION := 5.7.1
-SRCDIR=zsh-${ZSHVERSION}
-SRCURL := https://sourceforge.net/projects/zsh/files/zsh/5.7.1/zsh-5.7.1.tar.xz/download
-#SRCURL := https://github.com/zsh-users/zsh/archive/zsh-${ZSHVERSION}.tar.gz
+ZSHVERSION := 5.7
+SRCDIR=zsh-$(ZSHVERSION)
+SRCURL := https://sourceforge.net/projects/zsh/files/zsh/$(ZSHVERSION)/zsh-$(ZSHVERSION).tar.xz/download
 
 CURDIR := $(shell pwd)
-PROCS := $$(( $(shell nproc) -1 ))
+PROCS := $(shell nproc)
 
 all: out/$(ZIP)
 
 build/work/$(SRCDIR):
+	mkdir -p $(CURDIR)/build/work; \
 	cd $(CURDIR)/build/work; \
 	wget --output-document=zsh-$(ZSHVERSION).tar.gz $(SRCURL); \
 	tar xf zsh-$(ZSHVERSION).tar.gz
 
-build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)
+build/work/$(SRCDIR)/config.status: build/work/$(SRCDIR)
 	cd $(CURDIR)/build/work/$(SRCDIR); \
-	cp ../../config.modules .; \
 	./Util/preconfig; \
 	./configure \
-		--host=armv8l-linux-gnueabihf \
+		--host=aarch64-linux-gnu \
 		--bindir=/system/xbin \
 		--sbindir=/system/xbin \
 		--libexecdir=/system/xbin \
 		--datarootdir=/system/usr/share \
 		--prefix=/system \
-		--enable-cppflags='-static -fPIC' \
-		--enable-cppflags='-fPIC' \
+		--enable-cppflags=-static \
 		--enable-ldflags=-static \
 		--enable-zshenv=/system/etc/zsh/zshenv \
 		--enable-zprofile=/system/etc/zsh/zprofile \
@@ -40,30 +39,36 @@ build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)
 		--enable-zlogout=/system/etc/zsh/zlogout \
 		--disable-dynamic \
 		--disable-restricted-r \
-		--enable-pcre \
-		--disable-gdbm \
 		--disable-dynamic-nss \
+		--disable-gdbm \
+		--enable-pcre \
 		--enable-site-fndir=/system/usr/share/zsh/functions \
 		--enable-fndir=/system/usr/share/zsh/functions \
 		--disable-runhelpdir \
-		--enable-function-subdirs \
 		--sysconfdir=/system/etc \
 		--enable-etcdir=/system/etc \
-		--disable-dynamic-nss \
-		--enable-libs=-lpthread \
-		CC=armv8l-linux-gnueabihf-gcc; \
-	make -j$(PROCS); \ 
-	make install DESTDIR=$(CURDIR)/ZSH_Arm
+		--enable-libs=-lpthread; \
+	cp ../../config.modules .; \
+	./config.status --recheck
 
-	
 
-out/$(ZIP): build/work/$(SRCDIR)/Src/zsh $(DEPS)
+build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)/config.status
+	cd $(CURDIR)/build/work/$(SRCDIR); \
+	make -j$(PROCS) V=1
+
+$(CURDIR)/$(MOD)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh $(DEPS)
+	cd $(CURDIR)/build/work/$(SRCDIR); \
+	make install DESTDIR=$(CURDIR)/$(MOD)
+
+out/$(ZIP): $(CURDIR)/$(MOD)/system/xbin/zsh
 	cd $(MOD); \
-		sed -i "s/version=.*/version=${VERSION}/" module.prop; \
-		sed -i "s/versionCode=.*/versionCode=${VCODE}/" module.prop; \
+		rm -rf system/usr/share/man; \
+		sed -i "s/version=.*/version=$(MODVERSION)/" module.prop; \
+		sed -i "s/versionCode=.*/versionCode=$(VCODE)/" module.prop; \
 		zip -r ../out/$(ZIP) $(notdir $(wildcard $(MOD)/*))
 
 clean:
 	rm -f out/*.zip
 	rm -rf build/work/*
+	rm -rf $(MOD)/system/xbin/zsh $(MOD)/system/usr/share/zsh
 
