@@ -29,10 +29,12 @@ fi
 local opts=()
 [[ -o interactive ]] && opts+=(-i)
 [[ -o login ]] && opts+=(-l)
-[[ -z "$ENVC" ]] && exec env -i ENVC=1 USER=$USER HOSTNAME=$HOSTNAME DEBUG=$DEBUG zsh ${opts[@]}
+[[ -z "$ENVC" ]] && exec env -i ENVC=1 USER=$USER HOST=$HOST DEBUG=$DEBUG /system/xbin/zsh ${opts[@]}
 
 unset ENVC
 # Finally, the rest
+export ANDROID_ROOT=/system
+export ANDROID_DATA=/data
 export LC_ALL="C"
 export LANGUAGE="C"
 export LOGNAME=$USER

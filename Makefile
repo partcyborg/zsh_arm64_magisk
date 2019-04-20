@@ -1,4 +1,4 @@
-MODVERSION := 0.8
+MODVERSION := 0.9
 MOD := zsh_arm64
 ZIP := $(MOD)-$(MODVERSION).zip
 #ZIP := $(MOD)-$(MODVERSION)-$(shell date +%m-%d).zip
@@ -21,9 +21,10 @@ build/work/$(SRCDIR):
 	wget --output-document=zsh-$(ZSHVERSION).tar.gz $(SRCURL); \
 	tar xf zsh-$(ZSHVERSION).tar.gz
 
-build/work/$(SRCDIR)/config.status: build/work/$(SRCDIR)
+build/work/$(SRCDIR)/Makefile: build/work/$(SRCDIR)
 	cd $(CURDIR)/build/work/$(SRCDIR); \
 	./Util/preconfig; \
+	cp ../../config.modules .; \
 	./configure \
 		--host=aarch64-linux-gnu \
 		--bindir=/system/xbin \
@@ -47,22 +48,23 @@ build/work/$(SRCDIR)/config.status: build/work/$(SRCDIR)
 		--disable-runhelpdir \
 		--sysconfdir=/system/etc \
 		--enable-etcdir=/system/etc \
-		--enable-libs=-lpthread; \
-	cp ../../config.modules .; \
-	./config.status --recheck
+		--enable-libs=-lpthread
 
 
-build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)/config.status
+build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)/Makefile
 	cd $(CURDIR)/build/work/$(SRCDIR); \
-	make -j$(PROCS) V=1
+	make -j$(PROCS)
+
 
 $(CURDIR)/$(MOD)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh $(DEPS)
 	cd $(CURDIR)/build/work/$(SRCDIR); \
 	make install DESTDIR=$(CURDIR)/$(MOD)
 
+
 out/$(ZIP): $(CURDIR)/$(MOD)/system/xbin/zsh
 	cd $(MOD); \
 		rm -rf system/usr/share/man; \
+		rm system/xbin/zsh-* system/xbin/zsh.old; \
 		sed -i "s/version=.*/version=$(MODVERSION)/" module.prop; \
 		sed -i "s/versionCode=.*/versionCode=$(VCODE)/" module.prop; \
 		zip -r ../out/$(ZIP) $(notdir $(wildcard $(MOD)/*))
