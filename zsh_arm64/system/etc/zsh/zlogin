@@ -7,3 +7,16 @@
 # msgs, from, etc.)
 #
 # Global Order: zshenv, zprofile, zshrc, zlogin
+
+[[ -n "$DEBUG" ]] && set -vx
+
+# Setup homedir 
+[[ "$USER" == "root" ]] || local SU=(su -c)
+if [[ ! -d "${HOME}" ]]; then
+   local MKH=(mkdir ${HOME}; chown ${USER}:${USER} ${HOME})
+   [[ -n "$SU" ]] && ${SU[@]} "${MKH[*]}" &>/dev/null \
+      || ${MKH[@]} &> /dev/null
+fi
+mkdir -p $TMPPREFIX &>/dev/null
+
+[[ -n "$DEBUG" ]] && set +vx

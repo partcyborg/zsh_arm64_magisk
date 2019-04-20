@@ -1,5 +1,3 @@
-BB=/sbin/busybox
-
 
 pre_install() {
     # Do something here 

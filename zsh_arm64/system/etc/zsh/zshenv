@@ -11,28 +11,9 @@
 # output or assume the shell is attached to a tty.
 #
 # Global Order: zshenv, zprofile, zshrc, zlogin
-
-[[ -n "$DEBUG" ]] && set -vx
-# First, Setup homedir 
 USER=$(id | awk '{print $1}' | grep -Eo '\([a-z]*')
 export USER=${USER[2,99]}
-
-[[ "$USER" == "root" ]] || local SU=(su -c)
-
 export HOME=/data/local/${USER}
-if [[ ! -d "${HOME}" ]]; then
-   local MKH=(mkdir ${HOME}; chown ${USER}:${USER} ${HOME})
-   [[ -n "$SU" ]] && ${SU[@]} "${MKH[*]}" &>/dev/null \
-      || ${MKH[@]} &> /dev/null
-fi
-# Then, reset the environment
-local opts=()
-[[ -o interactive ]] && opts+=(-i)
-[[ -o login ]] && opts+=(-l)
-[[ -z "$ENVC" ]] && exec env -i ENVC=1 USER=$USER HOST=$HOST DEBUG=$DEBUG /system/xbin/zsh ${opts[@]}
-
-unset ENVC
-# Finally, the rest
 export ANDROID_ROOT=/system
 export ANDROID_DATA=/data
 export LC_ALL="C"
@@ -44,6 +25,3 @@ export HISTFILE=${HOME}/.zsh_history
 export TERMINFO=/system/usr/share/terminfo
 export TERM=xterm-256color
 export TMPPREFIX=${HOME}/tmp
-mkdir -p $TMPPREFIX &>/dev/null
-
-set +vx

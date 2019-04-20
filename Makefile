@@ -1,4 +1,4 @@
-MODVERSION := 0.9
+MODVERSION := 1.0
 MOD := zsh_arm64
 ZIP := $(MOD)-$(MODVERSION).zip
 #ZIP := $(MOD)-$(MODVERSION)-$(shell date +%m-%d).zip
@@ -9,19 +9,20 @@ DEPS := $(shell find $(MOD) -type f)
 ZSHVERSION := 5.7
 SRCDIR=zsh-$(ZSHVERSION)
 SRCURL := https://sourceforge.net/projects/zsh/files/zsh/$(ZSHVERSION)/zsh-$(ZSHVERSION).tar.xz/download
+ARCHIVE := $(SRCDIR).tar.gz
 
 CURDIR := $(shell pwd)
 PROCS := $(shell nproc)
 
 all: out/$(ZIP)
 
-build/work/$(SRCDIR):
+build/work/$(ARCHIVE):
 	mkdir -p $(CURDIR)/build/work; \
 	cd $(CURDIR)/build/work; \
-	wget --output-document=zsh-$(ZSHVERSION).tar.gz $(SRCURL); \
-	tar xf zsh-$(ZSHVERSION).tar.gz
+	wget --output-document=$(ARCHIVE) $(SRCURL); \
+	tar xf zsh-$(ZSHVERSION).tar.xz
 
-build/work/$(SRCDIR)/Makefile: build/work/$(SRCDIR)
+build/work/$(SRCDIR)/Makefile: build/work/$(ARCHIVE)
 	cd $(CURDIR)/build/work/$(SRCDIR); \
 	./Util/preconfig; \
 	cp ../../config.modules .; \
@@ -51,17 +52,18 @@ build/work/$(SRCDIR)/Makefile: build/work/$(SRCDIR)
 		--enable-libs=-lpthread
 
 
-build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)/Makefile
+build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)/Makefile $(DEPS)
 	cd $(CURDIR)/build/work/$(SRCDIR); \
 	make -j$(PROCS)
 
 
-$(CURDIR)/$(MOD)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh $(DEPS)
+$(MOD)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh
 	cd $(CURDIR)/build/work/$(SRCDIR); \
-	make install DESTDIR=$(CURDIR)/$(MOD)
+	make install DESTDIR=$(CURDIR)/$(MOD); \
+	chmod 755 $(CURDIR)/$(MOD)/system/xbin/*
 
 
-out/$(ZIP): $(CURDIR)/$(MOD)/system/xbin/zsh
+out/$(ZIP): $(MOD)/system/xbin/zsh
 	cd $(MOD); \
 		rm -rf system/usr/share/man; \
 		rm system/xbin/zsh-* system/xbin/zsh.old; \

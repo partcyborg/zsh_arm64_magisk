@@ -126,20 +126,23 @@ REPLACE="
 # Set what you want to show when installing your mod
 
 print_modname() {
-  NAME=$(grep_prop name $INSTALLER/module.prop)
-  # Split description at every 5th space so long descriptions fit better
-  DESCRIPTION=$(grep_prop description $INSTALLER/module.prop | sed 's/\(\([^ ]* \)\{4\}[^ ]*\) /\1\n/g')
-  END=$(echo "$DESCRIPTION" | awk '{if(length($0)>l) l=length($0);}END{print l}')
+  set -x
+  END=$(echo "$MODDESC" | awk '{if(length($0)>l) l=length($0);}END{print l}')
   LASTCHAR=$(( $END + 1 ))
   # create header and footer
   FHLENGTH=$(( $LASTCHAR + 5 ))
   HEADER=$(seq -s "#" "$FHLENGTH" | sed 's/[0-9]//g')
   FOOTER=$(seq -s "#" "$FHLENGTH" | sed 's/[0-9]//g')
+  NLENGTH=$(echo "$MODNAME" | wc -c)
+  NSTART=$((($FHLENGTH / 2) - ($NLENGTH / 2) - 2))
+  NEND=$(($FHLENGTH - $NSTART - 2)) 
   echo "$HEADER"
-  echo "$DESCRIPTION" | while read OUT; do
+  printf "%-${NSTART}s%-${NEND}s%s\n" "#" "$MODNAME" "#"
+  echo "$MODDESC" | while read OUT; do
      printf "%1s %-${LASTCHAR}s %1s\n" "#" "$OUT" "#"
   done
   echo "$FOOTER"
+  set +x
 }
 
 # Copy/extract your module files into $MODPATH in on_install.
@@ -170,7 +173,7 @@ set_permissions() {
 
 # list_zip_contents <dir>
 list_zip_contents() {
-   unzip -l "$ZIP" "$1/*" 2>/dev/null | tail -n+4 \
+   unzip -l "$ZIPFILE" "$1/*" 2>/dev/null | tail -n+4 \
       | rev | cut -d" " -f1 | rev \
       | sed '$d' | sed '$d'
 }
