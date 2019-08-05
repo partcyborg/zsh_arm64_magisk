@@ -1,5 +1,6 @@
 MODVERSION := $(shell sed -n 's/version=\(.*\)/\1/p' zsh_arm64/module.prop)
 MOD := zsh_arm64
+STAGE := stage
 ZIP := $(MOD)-$(MODVERSION).zip
 #ZIP := $(MOD)-$(MODVERSION)-$(shell date +%m-%d).zip
 
@@ -12,7 +13,6 @@ ZSHVERSION := 5.7
 SRCDIR=zsh-$(ZSHVERSION)
 SRCURL := https://sourceforge.net/projects/zsh/files/zsh/$(ZSHVERSION)/zsh-$(ZSHVERSION).tar.xz/download
 ARCHIVE := $(SRCDIR).tar.xz
-STAGE := stage
 
 CURDIR := $(shell pwd)
 PROCS := $(shell nproc)
@@ -60,29 +60,29 @@ build/work/$(SRCDIR)/Makefile: build/work/$(ARCHIVE)
 		--sbindir=/system/xbin \
 		--sysconfdir=/system/etc 
 
-# --disable-runhelpdir \
 
 build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)/Makefile $(DEPS)
 	cd $(CURDIR)/build/work/$(SRCDIR); \
 	make -j$(PROCS)
 
 
-$(STAGE)/%: build/work/$(SRCDIR)/Src/zsh 
+$(STAGE)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh 
 	cd $(CURDIR)/build/work/$(SRCDIR); \
 	make install DESTDIR=$(CURDIR)/$(STAGE); \
 	chmod 755 $(CURDIR)/$(STAGE)/system/xbin/*
 
-$(STAGE)/%: $(MOD)/%
+$(STAGE)/%: $(MOD)/% 
 	mkdir -p $(@D)
-	cp $< $@	
+	cp -v $? $@	
 
-out/$(ZIP): $(STAGE)/%
+out/$(ZIP): $(STAGEDEPS) $(STAGE)/system/xbin/zsh
 	cd $(STAGE); \
 		rm -rf system/usr/share/man; \
-		rm system/xbin/zsh-* system/xbin/zsh.old; \
-		sed -i "s/version=.*/version=$(MODVERSION)/" module.prop; \
-		sed -i "s/versionCode=.*/versionCode=$(VCODE)/" module.prop; \
-		zip -r ../out/$(ZIP) $(notdir $(wildcard $(STAGE)/*))
+		rm -f system/xbin/zsh-* system/xbin/zsh.old; \
+		zip -qr ../out/$(ZIP) $(notdir $(wildcard $(STAGE)/*))
+
+#sed -i "s/version=.*/version=$(MODVERSION)/" module.prop; \
+#sed -i "s/versionCode=.*/versionCode=$(VCODE)/" module.prop; \
 
 clean:
 	rm -rf build/work/*
