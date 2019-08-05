@@ -56,7 +56,7 @@ name=zsh/zpty modfile=Src/Modules/zpty.mdd link=static auto=no load=no
 name=zsh/zselect modfile=Src/Modules/zselect.mdd link=static auto=no load=no
 name=zsh/zutil modfile=Src/Modules/zutil.mdd link=static auto=yes load=yes
 name=zsh/compctl modfile=Src/Zle/compctl.mdd link=static auto=yes load=yes
-name=zsh/complete modfile=Src/Zle/complete.mdd link=static auto=no load=yes functions=Completion/*comp* Completion/Base/*/* Completion/Zsh/*/*
+name=zsh/complete modfile=Src/Zle/complete.mdd link=static auto=no load=yes functions=Completion/*comp* Completion/Base/*/* Completion/Zsh/*/* Completion/Unix/*/*
 name=zsh/complist modfile=Src/Zle/complist.mdd link=static auto=yes load=yes
 name=zsh/computil modfile=Src/Zle/computil.mdd link=static auto=yes load=yes
 name=zsh/deltochar modfile=Src/Zle/deltochar.mdd link=no auto=yes load=no
