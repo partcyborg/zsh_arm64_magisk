@@ -28,7 +28,7 @@ SKIPMOUNT=false
 PROPFILE=false
 
 # Set to true if you need post-fs-data script
-POSTFSDATA=false
+POSTFSDATA=true
 
 # Set to true if you need late_start service script
 LATESTARTSERVICE=false
@@ -126,23 +126,26 @@ REPLACE="
 # Set what you want to show when installing your mod
 
 print_modname() {
-  set -x
-  END=$(echo "$MODDESC" | awk '{if(length($0)>l) l=length($0);}END{print l}')
-  LASTCHAR=$(( $END + 1 ))
-  # create header and footer
-  FHLENGTH=$(( $LASTCHAR + 5 ))
-  HEADER=$(seq -s "#" "$FHLENGTH" | sed 's/[0-9]//g')
-  FOOTER=$(seq -s "#" "$FHLENGTH" | sed 's/[0-9]//g')
+  MODNAME=$(grep_prop name $TMPDIR/module.prop)
+  # Split description at every 5th space so long descriptions fit better
+  MODDESC=$(grep_prop description $TMPDIR/module.prop | sed 's/\(\([^ ]* \)\{4\}[^ ]*\) /\1\n/g')
+  L_DESC=$(echo "$MODDESC" | awk '{if(length($0)>l) l=length($0);}END{l=l+1; print l}')
   NLENGTH=$(echo "$MODNAME" | wc -c)
-  NSTART=$((($FHLENGTH / 2) - ($NLENGTH / 2) - 2))
-  NEND=$(($FHLENGTH - $NSTART - 2)) 
-  echo "$HEADER"
+  WIDTH=$(($L_DESC + 5))
+  if [ "$((($WIDTH - $NLENGTH) % 2))" -ne 0 ]; then
+     WIDTH=$(($WIDTH + 1))
+     L_DESC=$(($L_DESC + 1))
+  fi
+  BREAK=$(seq -s "#" "$WIDTH" | sed 's/[0-9]//g')
+  NSTART=$((($WIDTH - $NLENGTH) / 2))
+  NEND=$(($WIDTH - $NSTART - 2)) 
+  echo "$BREAK"
   printf "%-${NSTART}s%-${NEND}s%s\n" "#" "$MODNAME" "#"
+  echo "$BREAK"
   echo "$MODDESC" | while read OUT; do
-     printf "%1s %-${LASTCHAR}s %1s\n" "#" "$OUT" "#"
+     printf "%1s %-${L_DESC}s %1s\n" "#" "$OUT" "#"
   done
-  echo "$FOOTER"
-  set +x
+  echo "$BREAK"
 }
 
 # Copy/extract your module files into $MODPATH in on_install.
@@ -150,8 +153,23 @@ print_modname() {
 on_install() {
   # The following is the default implementation: extract $ZIPFILE/system to $MODPATH
   # Extend/change the logic to whatever you want
+  ui_print "- Staging Scripts"
+  unzip -o "$ZIP" 'script/*' -d $TMPDIR >&2
+  if [ -f $TMPDIR/script/pre.sh ]; then
+     ui_print "- Running pre-install script"
+     source $TMPDIR/script/pre.sh
+     pre_install
+  fi
+
   ui_print "- Extracting module files"
   unzip -o "$ZIPFILE" 'system/*' -d $MODPATH >&2
+
+  if [ -f $TMPDIR/script/post.sh ]; then
+     ui_print "- Running post-install script"
+     source $TMPDIR/script/post.sh
+     post_install
+  fi
+
 }
 
 # Only some special files require specific permissions
@@ -161,6 +179,7 @@ on_install() {
 set_permissions() {
   # The following is the default rule, DO NOT remove
   set_perm_recursive $MODPATH 0 0 0755 0644
+  set_perm $MODPATH/system/etc/permissions/privapp-permissions-platform.xml  0  0  0 0644 u:object_r:system_file:s0
 
   # Here are some examples:
   # set_perm_recursive  $MODPATH/system/lib       0     0       0755      0644
@@ -173,7 +192,7 @@ set_permissions() {
 
 # list_zip_contents <dir>
 list_zip_contents() {
-   unzip -l "$ZIPFILE" "$1/*" 2>/dev/null | tail -n+4 \
+   unzip -l "$ZIP" "$1/*" 2>/dev/null | tail -n+4 \
       | rev | cut -d" " -f1 | rev \
       | sed '$d' | sed '$d'
 }
