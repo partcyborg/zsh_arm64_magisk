@@ -11,8 +11,7 @@
 # output or assume the shell is attached to a tty.
 #
 # Global Order: zshenv, zprofile, zshrc, zlogin
-USER=$(id | awk '{print $1}' | grep -Eo '\([a-z]*')
-export USER=${USER[2,99]}
+export USER=$([[ "$(print -P "%#")" == '#' ]] && print 'root' || print 'system')
 export HOME=/data/local/${USER}
 export ANDROID_ROOT=/system
 export ANDROID_DATA=/data
