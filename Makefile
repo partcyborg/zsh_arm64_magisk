@@ -1,18 +1,23 @@
-MODVERSION := 1.0
+MODVERSION := $(shell sed -n 's/version=\(.*\)/\1/p' zsh_arm64/module.prop)
 MOD := zsh_arm64
 ZIP := $(MOD)-$(MODVERSION).zip
 #ZIP := $(MOD)-$(MODVERSION)-$(shell date +%m-%d).zip
 
 VCODE := $(subst .,,$(MODVERSION))
+
 DEPS := $(shell find $(MOD) -type f)
+STAGEDEPS := $(DEPS:$(MOD)/%=$(STAGE)/%)
 
 ZSHVERSION := 5.7
 SRCDIR=zsh-$(ZSHVERSION)
 SRCURL := https://sourceforge.net/projects/zsh/files/zsh/$(ZSHVERSION)/zsh-$(ZSHVERSION).tar.xz/download
-ARCHIVE := $(SRCDIR).tar.gz
+ARCHIVE := $(SRCDIR).tar.xz
+STAGE := stage
 
 CURDIR := $(shell pwd)
 PROCS := $(shell nproc)
+
+.PHONY: 
 
 all: out/$(ZIP)
 
@@ -27,52 +32,62 @@ build/work/$(SRCDIR)/Makefile: build/work/$(ARCHIVE)
 	./Util/preconfig; \
 	cp ../../config.modules .; \
 	./configure \
-		--host=aarch64-linux-gnu \
 		--bindir=/system/xbin \
-		--sbindir=/system/xbin \
-		--libexecdir=/system/xbin \
 		--datarootdir=/system/usr/share \
-		--prefix=/system \
+		--disable-dynamic \
+		--disable-dynamic-nss \
+		--disable-gdbm \
+		--disable-restricted-r \
+		--disable-runhelpdir \
 		--enable-cppflags=-static \
 		--enable-ldflags=-static \
 		--enable-zshenv=/system/etc/zsh/zshenv \
 		--enable-zprofile=/system/etc/zsh/zprofile \
 		--enable-zlogin=/system/etc/zsh/zlogin \
 		--enable-zlogout=/system/etc/zsh/zlogout \
-		--disable-dynamic \
-		--disable-restricted-r \
-		--disable-dynamic-nss \
-		--disable-gdbm \
+		--enable-multibyte \
 		--enable-pcre \
 		--enable-site-fndir=/system/usr/share/zsh/functions \
 		--enable-fndir=/system/usr/share/zsh/functions \
-		--disable-runhelpdir \
-		--sysconfdir=/system/etc \
+		--enable-function-subdirs \
+		--enable-scriptdir=/system/usr/share/zsh/scripts \
+		--enable-site-scriptdir=/system/usr/share/zsh/scripts \
 		--enable-etcdir=/system/etc \
-		--enable-libs=-lpthread
+		--enable-libs=-lpthread \
+		--host=aarch64-linux-gnu \
+		--libexecdir=/system/xbin \
+		--prefix=/system \
+		--sbindir=/system/xbin \
+		--sysconfdir=/system/etc 
 
+# --disable-runhelpdir \
 
 build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)/Makefile $(DEPS)
 	cd $(CURDIR)/build/work/$(SRCDIR); \
 	make -j$(PROCS)
 
 
-$(MOD)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh
+$(STAGE)/%: build/work/$(SRCDIR)/Src/zsh 
 	cd $(CURDIR)/build/work/$(SRCDIR); \
-	make install DESTDIR=$(CURDIR)/$(MOD); \
-	chmod 755 $(CURDIR)/$(MOD)/system/xbin/*
+	make install DESTDIR=$(CURDIR)/$(STAGE); \
+	chmod 755 $(CURDIR)/$(STAGE)/system/xbin/*
 
+$(STAGE)/%: $(MOD)/%
+	mkdir -p $(@D)
+	cp $< $@	
 
-out/$(ZIP): $(MOD)/system/xbin/zsh
-	cd $(MOD); \
+out/$(ZIP): $(STAGE)/%
+	cd $(STAGE); \
 		rm -rf system/usr/share/man; \
 		rm system/xbin/zsh-* system/xbin/zsh.old; \
 		sed -i "s/version=.*/version=$(MODVERSION)/" module.prop; \
 		sed -i "s/versionCode=.*/versionCode=$(VCODE)/" module.prop; \
-		zip -r ../out/$(ZIP) $(notdir $(wildcard $(MOD)/*))
+		zip -r ../out/$(ZIP) $(notdir $(wildcard $(STAGE)/*))
 
 clean:
-	rm -f out/*.zip
 	rm -rf build/work/*
-	rm -rf $(MOD)/system/xbin/zsh $(MOD)/system/usr/share/zsh
+	rm -rf $(STAGE)/*
+
+distclean: clean
+	rm -f out/*.zip
 
