@@ -73,9 +73,12 @@ $(STAGE)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh
 
 $(STAGE)/%: $(MOD)/% 
 	mkdir -p $(@D)
-	cp -v $? $@	
+	cp -v $? $@
 
-out/$(ZIP): $(STAGEDEPS) $(STAGE)/system/xbin/zsh
+$(STAGE)/README.md: README.md
+	cp README.md $(STAGE)/README.md
+
+out/$(ZIP): $(STAGEDEPS) $(STAGE)/system/xbin/zsh $(STAGE)/README.md
 	cd $(STAGE); \
 		rm -rf system/usr/share/man; \
 		rm -f system/xbin/zsh-* system/xbin/zsh.old; \
