@@ -154,7 +154,7 @@ on_install() {
   # The following is the default implementation: extract $ZIPFILE/system to $MODPATH
   # Extend/change the logic to whatever you want
   ui_print "- Staging Scripts"
-  unzip -o "$ZIP" 'script/*' -d $TMPDIR >&2
+  unzip -o "$ZIPFILE" 'script/*' -d $TMPDIR >&2
   if [ -f $TMPDIR/script/pre.sh ]; then
      ui_print "- Running pre-install script"
      source $TMPDIR/script/pre.sh
@@ -192,7 +192,7 @@ set_permissions() {
 
 # list_zip_contents <dir>
 list_zip_contents() {
-   unzip -l "$ZIP" "$1/*" 2>/dev/null | tail -n+4 \
+   unzip -l "$ZIPFILE" "$1/*" 2>/dev/null | tail -n+4 \
       | rev | cut -d" " -f1 | rev \
       | sed '$d' | sed '$d'
 }

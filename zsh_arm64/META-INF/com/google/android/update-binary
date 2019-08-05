@@ -59,16 +59,11 @@ $BOOTMODE && boot_actions || recovery_actions
 ##########################################################################################
 
 # Extract common files
-unzip -oj "$ZIPFILE" module.prop install.sh uninstall.sh 'common/*' 'script/*' -d $TMPDIR >&2
+unzip -oj "$ZIPFILE" module.prop install.sh uninstall.sh 'common/*' -d $TMPDIR >&2
 
 [ ! -f $TMPDIR/install.sh ] && abort "! Unable to extract zip file!"
 # Load install script
 . $TMPDIR/install.sh
-set -x
-# Load pre and post install scripts
-. ${TMPDIR}/pre.sh
-. ${TMPDIR}/post.sh
-set +x
 
 if imageless_magisk; then
   $BOOTMODE && MODDIRNAME=modules_update || MODDIRNAME=modules
@@ -83,8 +78,6 @@ fi
 
 MODID=`grep_prop id $TMPDIR/module.prop`
 MODPATH=$MODULEROOT/$MODID
-MODNAME=$(grep_prop name $TMPDIR/module.prop)
-MODDESC=$(grep_prop description $TMPDIR/module.prop | sed 's/\(\([^ ]* \)\{4\}\)/\1\n/g')
 
 print_modname
 
@@ -102,11 +95,6 @@ mkdir -p $MODPATH
 
 # Remove placeholder
 rm -f $MODPATH/system/placeholder 2>/dev/null
-
-set -x
-ui_print "- Running pre-install script"
-pre_install
-set +x
 
 on_install
 
@@ -147,13 +135,9 @@ for TARGET in $REPLACE; do
   mktouch $MODPATH$TARGET/.replace
 done
 
+
 ui_print "- Setting permissions"
 set_permissions
-
-set -x
-ui_print "- Running post-install script"
-post_install
-set +x
 
 ##########################################################################################
 # Finalizing
