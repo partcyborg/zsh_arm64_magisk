@@ -15,15 +15,15 @@ If you run Zsh as root, a home directory is automatically created for you at `/d
 ## Changelog
 
 v1.2 - 8/07/2019
-* Update README [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/670908e73f5e9ebbd3 6cfe30775a9139f6ed0db0)
+* Update README [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/670908e73f5e9ebbd36cfe30775a9139f6ed0db0)
 * Move the README file to the project root. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/dc6ad8602a9debf5efe7a80e8cb3af7cba4e60a9)
 
 v1.1 - 8/05/2019
-* Minor bugfixes and cleanups [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/b8e8 42ff58ddc431b976eb1bbc32df0b7df11578)
-* Refactor the build process [2/2]. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commi t/07f8dd8f9f240037348a4bf0d7858ae10aad25a5)
-* Refactor the build process [1/2]. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commi t/e0cb91d0284034ccb503907ba1bf331edc234bb0)
-* Add the "Unix" Completion functions. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/co mmit/57bb7730e5b763c0c1a19490ca024b07b20e9c09)
-* Fix user reporting on some custom roms. [view commit](http://github.com/partcyborg/zsh_arm64_magisk /commit/d4b1366402da36141d29966b6096b6b5ebd728c2)
+* Minor bugfixes and cleanups [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/b8e842ff58ddc431b976eb1bbc32df0b7df11578)
+* Refactor the build process [2/2]. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/07f8dd8f9f240037348a4bf0d7858ae10aad25a5)
+* Refactor the build process [1/2]. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/e0cb91d0284034ccb503907ba1bf331edc234bb0)
+* Add the "Unix" Completion functions. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/57bb7730e5b763c0c1a19490ca024b07b20e9c09)
+* Fix user reporting on some custom roms. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/d4b1366402da36141d29966b6096b6b5ebd728c2)
 * Fix the module description drawing function. [view commit](http://github.com/partcyborg/zsh_arm64_magisk/commit/58153ecdc9c4c0e30bc466993104f57d8c24cdd4)
 
 v1.0 - 4/20/2019
