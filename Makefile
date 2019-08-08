@@ -1,13 +1,13 @@
-MODVERSION := $(shell sed -n 's/version=\(.*\)/\1/p' zsh_arm64/module.prop)
+MODVERSION := $(shell sed -n 's/version=\(.*\)/\1/p' module.prop)
 MOD := zsh_arm64
-STAGE := stage
 ZIP := $(MOD)-$(MODVERSION).zip
 #ZIP := $(MOD)-$(MODVERSION)-$(shell date +%m-%d).zip
 
 VCODE := $(subst .,,$(MODVERSION))
 
-DEPS := $(shell find $(MOD) -type f)
-STAGEDEPS := $(DEPS:$(MOD)/%=$(STAGE)/%)
+DEPS := $(shell find . -path build -prune -o -path out -prune -o -type f)
+
+MODFILES := common META-INF script system install.sh module.prop README.md
 
 ZSHVERSION := 5.7
 SRCDIR=zsh-$(ZSHVERSION)
@@ -66,30 +66,22 @@ build/work/$(SRCDIR)/Src/zsh: build/work/$(SRCDIR)/Makefile $(DEPS)
 	make -j$(PROCS)
 
 
-$(STAGE)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh 
+$(CURDIR)/system/xbin/zsh: build/work/$(SRCDIR)/Src/zsh 
 	cd $(CURDIR)/build/work/$(SRCDIR); \
-	make install DESTDIR=$(CURDIR)/$(STAGE); \
-	chmod 755 $(CURDIR)/$(STAGE)/system/xbin/*
+	make install DESTDIR=$(CURDIR); \
+	chmod 755 $(CURDIR)/system/xbin/*
 
-$(STAGE)/%: $(MOD)/% 
-	mkdir -p $(@D)
-	cp -v $? $@
-
-$(STAGE)/README.md: README.md
-	cp README.md $(STAGE)/README.md
-
-out/$(ZIP): $(STAGEDEPS) $(STAGE)/system/xbin/zsh $(STAGE)/README.md
-	cd $(STAGE); \
+out/$(ZIP): $(DEPS) $(CURDIR)/system/xbin/zsh
+	cd $(CURDIR); \
 		rm -rf system/usr/share/man; \
 		rm -f system/xbin/zsh-* system/xbin/zsh.old; \
-		zip -qr ../out/$(ZIP) $(notdir $(wildcard $(STAGE)/*))
+		zip -qr out/$(ZIP) $(MODFILES)
 
 #sed -i "s/version=.*/version=$(MODVERSION)/" module.prop; \
 #sed -i "s/versionCode=.*/versionCode=$(VCODE)/" module.prop; \
 
 clean:
 	rm -rf build/work/*
-	rm -rf $(STAGE)/*
 
 distclean: clean
 	rm -f out/*.zip

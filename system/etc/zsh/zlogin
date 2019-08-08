@@ -1,0 +1,22 @@
+# /etc/zsh/zlogin: system-wide .zlogin file for zsh(1).
+#
+# This file is sourced only for login shells. It
+# should contain commands that should be executed only
+# in login shells. It should be used to set the terminal
+# type and run a series of external commands (fortune,
+# msgs, from, etc.)
+#
+# Global Order: zshenv, zprofile, zshrc, zlogin
+
+[[ -n "$DEBUG" ]] && set -vx
+
+# Setup homedir 
+[[ "$USER" == "root" ]] || local SU=(su -c)
+if [[ ! -d "${HOME}" ]]; then
+   local MKH=(mkdir ${HOME}; chown ${USER}:${USER} ${HOME})
+   [[ -n "$SU" ]] && ${SU[@]} "${MKH[*]}" &>/dev/null \
+      || ${MKH[@]} &> /dev/null
+fi
+mkdir -p $TMPPREFIX &>/dev/null
+
+[[ -n "$DEBUG" ]] && set +vx
