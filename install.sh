@@ -153,11 +153,13 @@ print_modname() {
 on_install() {
   # The following is the default implementation: extract $ZIPFILE/system to $MODPATH
   # Extend/change the logic to whatever you want
+  DBGLOG="/data/local/debug.log"
+  maybe_debug
   ui_print "- Staging Scripts"
   unzip -o "$ZIPFILE" 'script/*' -d $TMPDIR >&2
   if [ -f $TMPDIR/script/pre.sh ]; then
      ui_print "- Running pre-install script"
-     source $TMPDIR/script/pre.sh
+     . $TMPDIR/script/pre.sh
      pre_install
   fi
 
@@ -166,7 +168,7 @@ on_install() {
 
   if [ -f $TMPDIR/script/post.sh ]; then
      ui_print "- Running post-install script"
-     source $TMPDIR/script/post.sh
+     . $TMPDIR/script/post.sh
      post_install
   fi
 
@@ -177,9 +179,10 @@ on_install() {
 # The default permissions should be good enough for most cases
 
 set_permissions() {
+   return 0
   # The following is the default rule, DO NOT remove
-  set_perm_recursive $MODPATH 0 0 0755 0644
-  set_perm $MODPATH/system/etc/permissions/privapp-permissions-platform.xml  0  0  0 0644 u:object_r:system_file:s0
+  # My installer handles permissions already
+  #set_perm_recursive $MODPATH 0 0 0755 0644
 
   # Here are some examples:
   # set_perm_recursive  $MODPATH/system/lib       0     0       0755      0644
@@ -195,5 +198,13 @@ list_zip_contents() {
    unzip -l "$ZIPFILE" "$1/*" 2>/dev/null | tail -n+4 \
       | rev | cut -d" " -f1 | rev \
       | sed '$d' | sed '$d'
+}
+
+maybe_debug() {
+   if [ -f /data/local/DEBUG_installer ]; then
+      ui_print "- Debug logs located at $DBGLOG"
+      exec 2>$DBGLOG
+      set -x
+   fi
 }
 

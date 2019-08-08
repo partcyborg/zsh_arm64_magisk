@@ -21,4 +21,3 @@ set_perms() {
 post_install() {
    set_perms system
 }
-set +x
